@@ -37,6 +37,29 @@ class Ball():
         self.X += self.dx
         self.Y += self.dy
 
+class StatsWindow(QDockWidget):
+    def __init__(self):
+        super().__init__("Статистика")
+        self.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.stats_widget = QTextEdit()
+        self.stats_widget.setReadOnly(True)
+        self.setWidget(self.stats_widget)
+        
+    def update_stats(self, ball, windows):
+        speed = (ball.dx**2 + ball.dy**2)**0.5
+        stats_text = [
+            f"Скорость: {speed:.1f} px/сек",
+            f"Координаты: ({int(ball.X)}, {int(ball.Y)})",
+            f"Отскоков: {ball.bounce_count}"
+            "\nВремя в окнах:"
+        ]
+        
+        for i, window in enumerate(windows):
+            time_str = window.visible_time.toString("hh:mm:ss.zzz")
+            stats_text.append(f"Окно {window.window_id}: {time_str}")
+        
+        self.stats_widget.setPlainText("\n".join(stats_text))
+
 class MainWindow(QMainWindow):
     def __init__(self, window_id=1):
         super().__init__()
@@ -74,6 +97,26 @@ class MainWindow(QMainWindow):
             Qt.SmoothTransformation
         )
         self.sprites[ball_id].setPixmap(scaled_pixmap)
+
+def update_visibility_time(self, ball_in_window):
+    current_time = QTime.currentTime()
+    
+    # Логика старта/останова таймера
+    if ball_in_window:
+        if not self.timer_active:
+            self.timer_active = True
+            self.last_update = current_time
+    else:
+        if self.timer_active:
+            self.timer_active = False
+            elapsed = self.last_update.msecsTo(current_time)
+            self.visible_time = self.visible_time.addMSecs(elapsed)
+    
+    # Обновление статистики в реальном времени
+    if self.timer_active:
+        elapsed = self.last_update.msecsTo(current_time)
+        temp_time = self.visible_time.addMSecs(elapsed)
+        self.stats_dock.update_stats(ball, windows)
 
 def update():
     for window in windows:

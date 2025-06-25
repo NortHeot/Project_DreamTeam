@@ -7,8 +7,8 @@ import random as rnd
 import os
 
 global width, height
-width = 38
-height = 38
+width = 50
+height = 50
 
 class Ball():
     def __init__(self, x, y, dx, dy, ball_id):

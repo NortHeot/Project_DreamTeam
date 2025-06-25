@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QDockWidget, QTextEdit
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QUrl
 from PyQt5.QtMultimedia import QSound, QSoundEffect
@@ -20,6 +20,7 @@ class Ball():
         self.sound_effect = QSoundEffect()
         self.sound_effect.setSource(QUrl.fromLocalFile("bounce.wav"))  
         self.sound_effect.setVolume(0.5) 
+        self.bounce_count = 0
     
     def bounce(self):
         play_sound = False
@@ -31,6 +32,7 @@ class Ball():
             play_sound = True
         
         if play_sound:
+            self.bounce_count += 1
             self.sound_effect.play()
             
     def move_ball(self):
@@ -98,6 +100,26 @@ def repulsion(b):
                     else:
                         ball2.dx *= -1
 
+class StatsWindow(QDockWidget):
+    def __init__(self, ball):
+        super().__init__(f"Статистика шара {ball.ball_id}")
+        self.ball = ball
+        self.stats_widget = QTextEdit()
+        self.stats_widget.setReadOnly(True)
+        self.setWidget(self.stats_widget)
+
+    def update_status(self, windows):
+        speed = (self.ball.dx ** 2 + self.ball.dy ** 2) ** 0.5
+
+        stats_text = [
+            f"Скорость: {speed:.1f} px/сек",
+            f"Координаты: ({self.ball.X}, {self.ball.Y})",
+            f"Отскоков: {self.ball.bounce_count}"
+        ]
+
+        self.stats_widget.setPlainText('\n'.join(stats_text))
+
+
 def update():
     for window in windows:
         for ball in balls:
@@ -107,6 +129,9 @@ def update():
     for ball in balls:
         ball.bounce()
         ball.move_ball()
+    for stats_window in stats_windows:
+        stats_window.update_status(windows)
+    
 
 if __name__ == "__main__":
     app = QApplication([])
@@ -115,11 +140,19 @@ if __name__ == "__main__":
     balls = [Ball(rnd.randint(100,1500), rnd.randint(100,900), 
                 rnd.choice([1,-1]) * rnd.randint(15,25), 
                 rnd.choice([1,-1]) * rnd.randint(15,25), i) for i in range(5)]
+    stats_windows = []
     
     for window in windows:
         for ball in balls:
             window.create_sprite(ball.ball_id)
         window.show()
+
+    for ball in balls:
+        stats_window = StatsWindow(ball)
+        stats_window.setFloating(True)
+        stats_window.show()
+        stats_windows.append(stats_window)
+
     
     timer = QTimer()
     timer.timeout.connect(update)

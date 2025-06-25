@@ -77,14 +77,8 @@ class MainWindow(QMainWindow):
         )
         self.sprites[ball_id].setPixmap(scaled_pixmap)
 
-
-def update():
-    for window in windows:
-        for ball in balls:
-            window.move_sprite(ball.X, ball.Y, ball.ball_id)
-            window.animation_1(ball.dx, ball.dy, ball.ball_id)
+def repulsion(b):
     for ball in balls:
-        ball.bounce()
         for ball2 in balls:
             if ball.ball_id != ball2.ball_id:
                 if ball.X + ball.dx + width >= ball2.X + ball2.dx and ball.X + ball.dx <= ball2.X + ball2.dx + width and ball.Y + ball.dy - height <= ball2.Y + ball2.dx and ball.Y + ball.dy >= ball2.Y + ball2.dy - height:
@@ -103,6 +97,15 @@ def update():
                         ball.dx *= -1
                     else:
                         ball2.dx *= -1
+
+def update():
+    for window in windows:
+        for ball in balls:
+            window.move_sprite(ball.X, ball.Y, ball.ball_id)
+            window.animation_1(ball.dx, ball.dy, ball.ball_id)
+    repulsion(balls)
+    for ball in balls:
+        ball.bounce()
         ball.move_ball()
 
 if __name__ == "__main__":

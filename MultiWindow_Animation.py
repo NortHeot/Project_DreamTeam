@@ -23,10 +23,10 @@ class Ball():
     
     def bounce(self):
         play_sound = False
-        if self.X <= 0 or self.X >= 1920 - width*self.ball_id:
+        if self.X + self.dx <= 0 or self.X + self.dx >= 1920 - width:
             self.dx *= -1
             play_sound = True
-        if self.Y <= 0 or self.Y >= 1200 - height*self.ball_id:
+        if self.Y + self.dy <= 0 or self.Y + self.dy >= 1200 - height:
             self.dy *= -1
             play_sound = True
         
@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         
     def create_sprite(self, ball_id):
         self.sprites.append(QLabel(self))
-        self.sprites[ball_id].setFixedSize(width * int((ball_id+1)**(0.5)), height * int((ball_id+1)**(0.5)))
+        self.sprites[ball_id].setFixedSize(width, height)
 
     def move_sprite(self, X, Y, ball_id):
         x = X - self.x()
@@ -70,8 +70,8 @@ class MainWindow(QMainWindow):
             pixmap = QPixmap(f'Clownfish_{self.animation_order_count}_ru.png')
             
         scaled_pixmap = pixmap.scaled(
-            width * int((ball_id+1)**(0.5)), 
-            height * int((ball_id+1)**(0.5)),
+            width, 
+            height,
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation
         )
@@ -85,6 +85,24 @@ def update():
             window.animation_1(ball.dx, ball.dy, ball.ball_id)
     for ball in balls:
         ball.bounce()
+        for ball2 in balls:
+            if ball.ball_id != ball2.ball_id:
+                if ball.X + ball.dx + width >= ball2.X + ball2.dx and ball.X + ball.dx <= ball2.X + ball2.dx + width and ball.Y + ball.dy - height <= ball2.Y + ball2.dx and ball.Y + ball.dy >= ball2.Y + ball2.dy - height:
+                    if ball.dy * ball2.dy < 0:
+                        ball.dy *= -1
+                        ball2.dy *= -1
+                    elif ball.dx * ball2.dx < 0:
+                        ball.dx *= -1
+                        ball2.dx *= -1
+                    elif ball.dx * ball.dy < 0:
+                        if (ball.Y - ball2.Y) * ball.dy < 0:
+                            ball.dx *= -1
+                        else:
+                            ball2.dx *= -1
+                    elif (ball.Y - ball2.Y) * ball.dy > 0:
+                        ball.dx *= -1
+                    else:
+                        ball2.dx *= -1
         ball.move_ball()
 
 if __name__ == "__main__":

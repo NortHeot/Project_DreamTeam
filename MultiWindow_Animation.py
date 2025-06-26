@@ -1,25 +1,40 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QDockWidget, QTextEdit
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QUrl
-from PyQt5.QtMultimedia import QSound, QSoundEffect
+from PyQt5.QtMultimedia import QSoundEffect
 import sys
 import random as rnd
-import os
 
 global width, height
 width = 60
 height = 60
 
+class SoundManager:
+    def __init__(self):
+        self.sound_effects = []
+        self.max_simultaneous_sounds = 5
+        
+
+        for _ in range(self.max_simultaneous_sounds):
+            effect = QSoundEffect()
+            effect.setSource(QUrl.fromLocalFile("bounce.wav"))
+            effect.setVolume(0.5)
+            self.sound_effects.append(effect)
+    
+    def play_bounce(self):
+        for effect in self.sound_effects:
+            if not effect.isPlaying():
+                effect.play()
+                break
+
 class Ball():
-    def __init__(self, x, y, dx, dy, ball_id):
+    def __init__(self, x, y, dx, dy, ball_id, sound_manager):
         self.X = x
         self.Y = y
         self.dx = dx
         self.dy = dy
         self.ball_id = ball_id
-        self.sound_effect = QSoundEffect()
-        self.sound_effect.setSource(QUrl.fromLocalFile("bounce.wav"))  
-        self.sound_effect.setVolume(0.5) 
+        self.sound_manager = sound_manager
         self.bounce_count = 0
     
     def bounce(self):
@@ -33,7 +48,7 @@ class Ball():
         
         if play_sound:
             self.bounce_count += 1
-            self.sound_effect.play()
+            self.sound_manager.play_bounce()
             
     def move_ball(self):
         self.X += self.dx
@@ -66,6 +81,7 @@ class MainWindow(QMainWindow):
         self.window_id = window_id
         self.setWindowTitle(f"Окно {window_id}")
         self.setGeometry(100 + window_id * 50, 100 + window_id * 50, 400, 300)
+        self.setStyleSheet("background-color: #91d1ed;")
         self.animation_order_count = 1
         self.sprites = []
         
@@ -134,10 +150,11 @@ def update():
 if __name__ == "__main__":
     app = QApplication([])
     
+    sound_manager = SoundManager()
     windows = [MainWindow(1), MainWindow(2), MainWindow(3)]
     balls = [Ball(rnd.randint(100,1500), rnd.randint(100,900), 
                 rnd.choice([1,-1]) * rnd.randint(15,25), 
-                rnd.choice([1,-1]) * rnd.randint(15,25), i) for i in range(5)]
+                rnd.choice([1,-1]) * rnd.randint(15,25), i, sound_manager) for i in range(5)]
     stats_windows = []
     
     for window in windows:

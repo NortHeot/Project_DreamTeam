@@ -7,8 +7,8 @@ import random as rnd
 import os
 
 global width, height
-width = 50
-height = 50
+width = 60
+height = 60
 
 class Ball():
     def __init__(self, x, y, dx, dy, ball_id):
@@ -38,7 +38,26 @@ class Ball():
     def move_ball(self):
         self.X += self.dx
         self.Y += self.dy
-
+        
+    def repulsion(self, balls):
+        for ball2 in balls:
+            if self.ball_id != ball2.ball_id:
+                if self.X + self.dx + width >= ball2.X + ball2.dx and self.X + self.dx <= ball2.X + ball2.dx + width and self.Y + self.dy - height <= ball2.Y + ball2.dx and self.Y + self.dy >= ball2.Y + ball2.dy - height:
+                    if self.dy * ball2.dy < 0:
+                        self.dy *= -1
+                        ball2.dy *= -1
+                    elif self.dx * ball2.dx < 0:
+                        self.dx *= -1
+                        ball2.dx *= -1
+                    elif self.dx * self.dy < 0:
+                        if (self.Y - ball2.Y) * self.dy < 0:
+                            self.dx *= -1
+                        else:
+                            ball2.dx *= -1
+                    elif (self.Y - ball2.Y) * self.dy > 0:
+                        self.dx *= -1
+                    else:
+                        ball2.dx *= -1
 
 
 class MainWindow(QMainWindow):
@@ -79,27 +98,6 @@ class MainWindow(QMainWindow):
         )
         self.sprites[ball_id].setPixmap(scaled_pixmap)
 
-def repulsion(b):
-    for ball in balls:
-        for ball2 in balls:
-            if ball.ball_id != ball2.ball_id:
-                if ball.X + ball.dx + width >= ball2.X + ball2.dx and ball.X + ball.dx <= ball2.X + ball2.dx + width and ball.Y + ball.dy - height <= ball2.Y + ball2.dx and ball.Y + ball.dy >= ball2.Y + ball2.dy - height:
-                    if ball.dy * ball2.dy < 0:
-                        ball.dy *= -1
-                        ball2.dy *= -1
-                    elif ball.dx * ball2.dx < 0:
-                        ball.dx *= -1
-                        ball2.dx *= -1
-                    elif ball.dx * ball.dy < 0:
-                        if (ball.Y - ball2.Y) * ball.dy < 0:
-                            ball.dx *= -1
-                        else:
-                            ball2.dx *= -1
-                    elif (ball.Y - ball2.Y) * ball.dy > 0:
-                        ball.dx *= -1
-                    else:
-                        ball2.dx *= -1
-
 class StatsWindow(QDockWidget):
     def __init__(self, ball):
         super().__init__(f"Статистика шара {ball.ball_id}")
@@ -125,9 +123,9 @@ def update():
         for ball in balls:
             window.move_sprite(ball.X, ball.Y, ball.ball_id)
             window.animation_1(ball.dx, ball.dy, ball.ball_id)
-    repulsion(balls)
     for ball in balls:
         ball.bounce()
+        ball.repulsion(balls)
         ball.move_ball()
     for stats_window in stats_windows:
         stats_window.update_status(windows)

@@ -42,7 +42,7 @@ class Ball():
         if self.X + self.dx <= 0 or self.X + self.dx >= 1920 - width:
             self.dx *= -1
             play_sound = True
-        if self.Y + self.dy <= 0 or self.Y + self.dy >= 1200 - height:
+        if self.Y + self.dy <= 0 or self.Y + self.dy >= 1080 - height:
             self.dy *= -1
             play_sound = True
         
